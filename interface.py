@@ -1,5 +1,8 @@
 import curses
+import argparse
 import os
+import sys
+import shutil
 
 ROOT_SYNTH_DIR = "synths"
 
@@ -39,7 +42,17 @@ def init_colors():
     curses.init_pair(FILE_COLOR, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
 
-def main(stdscr):
+def launch_vcv(vcvpath, filename):
+    autosave_path = f"{vcvpath}/autosave-v1.vcv"
+    if os.path.isfile(autosave_path):
+        shutil.move(autosave_path, autosave_path + ".old")
+
+    shutil.copy(filename, autosave_path)
+
+    os.system(f"open {vcvpath}/Rack.app")
+
+
+def main(stdscr, vcvpath):
     stdscr.clear()
     init_colors()
 
@@ -78,6 +91,8 @@ def main(stdscr):
                 dirs.append(path)
                 dir_contents = get_synths(dirs[-1])
                 row = 0
+            elif path.endswith(".vcv"):
+                launch_vcv(vcvpath, path)
         elif c == ord("a"):
             if len(dirs) > 1:
                 display.clear()
@@ -86,4 +101,12 @@ def main(stdscr):
                 row = 0
 
 
-curses.wrapper(main)
+parser = argparse.ArgumentParser()
+parser.add_argument("vcvlocation")
+
+args = parser.parse_args(sys.argv[1:])
+
+if not args.vcvlocation.endswith(".App"):
+    pass
+
+curses.wrapper(main, args.vcvlocation)
