@@ -106,7 +106,8 @@ parser.add_argument("vcvlocation")
 
 args = parser.parse_args(sys.argv[1:])
 
-if not args.vcvlocation.endswith(".App"):
-    pass
+if not os.path.isdir(f"{args.vcvlocation}/Rack.app"):
+    print("This is not the correct location for VCV rack!")
+    sys.exit(1)
 
 curses.wrapper(main, args.vcvlocation)
