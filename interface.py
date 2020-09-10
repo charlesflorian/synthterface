@@ -31,7 +31,7 @@ def get_synths(curdir="synths"):
 def show_synths(stdscr, dir_contents):
     for ix, (isdir, short_path, _) in enumerate(dir_contents):
         attr = curses.color_pair(DIR_COLOR) if isdir else curses.color_pair(FILE_COLOR)
-        write_text(stdscr, ix + 1, 2, short_path, attr)
+        write_text(stdscr, ix, 2, short_path, attr)
 
 
 def init_colors():
@@ -43,7 +43,12 @@ def main(stdscr):
     stdscr.clear()
     init_colors()
 
-    row = 1
+    dbox = stdscr.derwin(10, 60, 1, 0)
+    dbox.border()
+
+    display = dbox.derwin(8, 58, 1, 1)
+
+    row = 0
 
     write_text(stdscr, 0, 0, "Press 'q' to quit")
 
@@ -53,30 +58,32 @@ def main(stdscr):
 
     keep_going = True
     while keep_going:
-        show_synths(stdscr, dir_contents)
-        stdscr.move(row, 0)
+        show_synths(display, dir_contents)
+        stdscr.refresh()
+        display.move(row, 0)
 
         max_rows = len(dir_contents)
 
-        c = stdscr.getch()
+        c = display.getch()
         if c == ord("q"):
             keep_going = False
         elif c == ord("w"):
-            row = row - 1 if row > 1 else 1
+            row = row - 1 if row > 0 else 0
         elif c == ord("s"):
-            row = row + 1 if row < max_rows else max_rows
+            row = row + 1 if row < max_rows - 1 else max_rows - 1
         elif c == ord("d"):
-            isdir, _, path = dir_contents[row - 1]
+            isdir, _, path = dir_contents[row]
             if isdir:
+                display.clear()
                 dirs.append(path)
                 dir_contents = get_synths(dirs[-1])
-                row = 1
+                row = 0
         elif c == ord("a"):
             if len(dirs) > 1:
+                display.clear()
                 dirs.pop()
                 dir_contents = get_synths(dirs[-1])
-                row = 1
-        stdscr.move(row, 0)
+                row = 0
 
 
 curses.wrapper(main)
