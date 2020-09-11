@@ -20,20 +20,6 @@ def write_text(stdscr, row, col, text, attr=None):
         stdscr.addstr(row, col, text)
 
 
-def get_synths(curdir="synths"):
-    dirs = os.listdir(curdir)
-
-    out = []
-    for d in dirs:
-        path = f"{curdir}/{d}"
-        if os.path.isdir(path):
-            out.append((True, d, path))
-        else:
-            out.append((False, d, path))
-
-    return out
-
-
 def load_patches(curdir="synths"):
     directory = {}
     dirs = os.listdir(curdir)
@@ -116,8 +102,12 @@ def main(stdscr, vcvpath):
         elif c == ord("s"):
             row = row + 1 if row < max_rows - 1 else max_rows - 1
         elif c == ord("d"):
-            cur_synth = synths[row]
-            row = 0
+            if cur_synth:
+                patch_path = f"{ROOT_SYNTH_DIR}/{cur_synth}/{patches[cur_synth][row]}"
+                launch_vcv(vcvpath, patch_path)
+            else:
+                cur_synth = synths[row]
+                row = 0
         elif c == ord("a"):
             row = synths.index(cur_synth)
             cur_synth = None
