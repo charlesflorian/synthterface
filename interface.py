@@ -9,6 +9,9 @@ ROOT_SYNTH_DIR = "synths"
 DIR_COLOR = 1
 FILE_COLOR = 2
 
+DISP_WIDTH = 16
+DISP_HEIGHT = 5
+
 
 def write_text(stdscr, row, col, text, attr=None):
     if attr is not None:
@@ -34,7 +37,9 @@ def get_synths(curdir="synths"):
 def show_synths(stdscr, dir_contents):
     for ix, (isdir, short_path, _) in enumerate(dir_contents):
         attr = curses.color_pair(DIR_COLOR) if isdir else curses.color_pair(FILE_COLOR)
-        write_text(stdscr, ix, 2, short_path, attr)
+        synth_name = short_path if isdir else short_path.rstrip(".vcv")
+
+        write_text(stdscr, ix, 2, synth_name, attr)
 
 
 def init_colors():
@@ -52,14 +57,22 @@ def launch_vcv(vcvpath, filename):
     os.system(f"open {vcvpath}/Rack.app")
 
 
+def draw_disp(stdscr):
+    stdscr.clear()
+
+    dbox = stdscr.derwin(DISP_HEIGHT + 2, DISP_WIDTH + 2, 1, 0)
+    dbox.border()
+
+    display = dbox.derwin(DISP_HEIGHT, DISP_WIDTH, 1, 1)
+
+    return display
+
+
 def main(stdscr, vcvpath):
     stdscr.clear()
     init_colors()
 
-    dbox = stdscr.derwin(10, 60, 1, 0)
-    dbox.border()
-
-    display = dbox.derwin(8, 58, 1, 1)
+    display = draw_disp(stdscr)
 
     row = 0
 
