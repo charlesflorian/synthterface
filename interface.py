@@ -46,15 +46,16 @@ def load_patches(curdir="synths"):
     return list(directory.keys()), directory
 
 
-def show_synths(stdscr, patches, cur_synth):
+def show_synths(scr, patches, cur_synth):
+    scr.clear()
     if cur_synth and cur_synth in patches.keys():
         for ix, synthname in enumerate(patches[cur_synth]):
             attr = curses.color_pair(FILE_COLOR)
-            write_text(stdscr, ix, 1, synthname, attr)
+            write_text(scr, ix, 1, synthname, attr)
     else:
         for ix, dirname in enumerate(patches.keys()):
             attr = curses.color_pair(DIR_COLOR)
-            write_text(stdscr, ix, 1, dirname, attr)
+            write_text(scr, ix, 1, dirname, attr)
 
 
 def init_colors():
@@ -102,7 +103,10 @@ def main(stdscr, vcvpath):
         stdscr.refresh()
         display.move(row, 0)
 
-        max_rows = len(patches.keys())
+        if cur_synth:
+            max_rows = len(patches[cur_synth])
+        else:
+            max_rows = len(patches.keys())
 
         c = display.getch()
         if c == ord("q"):
@@ -113,6 +117,7 @@ def main(stdscr, vcvpath):
             row = row + 1 if row < max_rows - 1 else max_rows - 1
         elif c == ord("d"):
             cur_synth = synths[row]
+            row = 0
         elif c == ord("a"):
             row = synths.index(cur_synth)
             cur_synth = None
