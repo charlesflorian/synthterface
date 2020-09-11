@@ -34,12 +34,27 @@ def get_synths(curdir="synths"):
     return out
 
 
-def show_synths(stdscr, dir_contents):
-    for ix, (isdir, short_path, _) in enumerate(dir_contents):
-        attr = curses.color_pair(DIR_COLOR) if isdir else curses.color_pair(FILE_COLOR)
-        synth_name = short_path if isdir else short_path.rstrip(".vcv")
+def load_patches(curdir="synths"):
+    directory = {}
+    dirs = os.listdir(curdir)
 
-        write_text(stdscr, ix, 2, synth_name, attr)
+    for d in dirs:
+        path = f"{curdir}/{d}"
+        if os.path.isdir(path):
+            directory[d] = list(filter(lambda x: x.endswith(".vcv"), os.listdir(path)))
+
+    return list(directory.keys()), directory
+
+
+def show_synths(stdscr, patches, cur_synth):
+    if cur_synth and cur_synth in patches.keys():
+        for ix, synthname in enumerate(patches[cur_synth]):
+            attr = curses.color_pair(FILE_COLOR)
+            write_text(stdscr, ix, 1, synthname, attr)
+    else:
+        for ix, dirname in enumerate(patches.keys()):
+            attr = curses.color_pair(DIR_COLOR)
+            write_text(stdscr, ix, 1, dirname, attr)
 
 
 def init_colors():
@@ -74,21 +89,20 @@ def main(stdscr, vcvpath):
 
     display = draw_disp(stdscr)
 
-    row = 0
-
     write_text(stdscr, 0, 0, "Press 'q' to quit")
 
-    dirs = [ROOT_SYNTH_DIR]
+    synths, patches = load_patches(ROOT_SYNTH_DIR)
+    row = 0
 
-    dir_contents = get_synths(dirs[-1])
+    cur_synth = None
 
     keep_going = True
     while keep_going:
-        show_synths(display, dir_contents)
+        show_synths(display, patches, cur_synth)
         stdscr.refresh()
         display.move(row, 0)
 
-        max_rows = len(dir_contents)
+        max_rows = len(patches.keys())
 
         c = display.getch()
         if c == ord("q"):
@@ -98,20 +112,10 @@ def main(stdscr, vcvpath):
         elif c == ord("s"):
             row = row + 1 if row < max_rows - 1 else max_rows - 1
         elif c == ord("d"):
-            isdir, _, path = dir_contents[row]
-            if isdir:
-                display.clear()
-                dirs.append(path)
-                dir_contents = get_synths(dirs[-1])
-                row = 0
-            elif path.endswith(".vcv"):
-                launch_vcv(vcvpath, path)
+            cur_synth = synths[row]
         elif c == ord("a"):
-            if len(dirs) > 1:
-                display.clear()
-                dirs.pop()
-                dir_contents = get_synths(dirs[-1])
-                row = 0
+            row = synths.index(cur_synth)
+            cur_synth = None
 
 
 parser = argparse.ArgumentParser()
