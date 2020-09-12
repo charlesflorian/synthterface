@@ -4,7 +4,7 @@ import os
 import sys
 import shutil
 
-ROOT_SYNTH_DIR = "data/synths"
+ROOT_SYNTH_DIR = "synths"
 
 DIR_COLOR = 1
 FILE_COLOR = 2
